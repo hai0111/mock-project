@@ -13,9 +13,10 @@ interface IResponseErrors {
 	username?: string[]
 }
 
-interface IResponseSuccess extends IRegister {
+export interface IResponseSuccess extends IRegister {
 	bio: null
 	token: string
+	image: string
 }
 
 interface IResponse {

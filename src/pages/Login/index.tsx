@@ -1,21 +1,47 @@
 import { Formik } from 'formik'
 import { FormikProps } from 'formik/dist/types'
+import { useEffect, useState } from 'react'
 import { Button, Card, Container, Form } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import myAxios from '../../api/myAxios'
 import images from '../../assets/images'
+import { IResponseSuccess } from '../Register'
 
-interface IFormLogin {
-	formikProps: FormikProps<ILogin>
+interface IFormLogin extends FormikProps<ILogin> {
+	loading: boolean
+	errors: any
+	response: IResponse | null
 }
 
 const FormLogin = ({
-	formikProps: { values, handleChange, handleSubmit, setErrors }
+	values,
+	handleChange,
+	handleSubmit,
+	loading,
+	response
 }: IFormLogin) => {
+	const [isValid, setIsValid] = useState<string>('')
+	const navigate = useNavigate()
+	useEffect(() => {
+		if (response?.status === 403) {
+			setIsValid(response.data?.['email or password'][0])
+		} else if (response?.status === 200) {
+			toast('Logged in successfully', {
+				hideProgressBar: true,
+				position: 'top-right',
+				className: 'bg-success text-white'
+			})
+			sessionStorage.setItem('token', response.data.token)
+			navigate('/')
+		}
+	}, [response, navigate])
+
 	return (
 		<Form onSubmit={handleSubmit}>
 			<Form.Group className="mb-3">
 				<Form.Control
-					type="email"
+					type="text"
 					name="email"
 					value={values.email}
 					onChange={handleChange}
@@ -31,8 +57,11 @@ const FormLogin = ({
 					placeholder="Password..."
 				/>
 			</Form.Group>
+			<Form.Group>
+				<div className="text-center text-danger">{isValid}</div>
+			</Form.Group>
 			<Form.Group className="mb-3 d-grid pt-2">
-				<Button type="submit" className="fw-bold">
+				<Button disabled={loading} type="submit" className="fw-bold">
 					Login
 				</Button>
 			</Form.Group>
@@ -45,14 +74,38 @@ interface ILogin {
 	password: string
 }
 
+interface IResponseError {
+	'email or password': string[]
+}
+
+interface IResponse {
+	status: number
+	data: IResponseError & IResponseSuccess
+}
+
 const Login = () => {
+	const [loading, setLoading] = useState<boolean>(false)
+	const [response, setResponse] = useState<IResponse | null>(null)
 	const initValues = {
 		email: '',
 		password: ''
 	}
 
-	const onSubmit = (values: ILogin) => {
-		console.log(values)
+	const onSubmit = async (values: ILogin) => {
+		setLoading(true)
+		try {
+			const { status, data } = await myAxios.post(
+				'/users/login',
+				JSON.stringify({ user: values })
+			)
+			setResponse({ status, data: data.user })
+		} catch (err: any) {
+			const {
+				response: { status, data }
+			} = err
+			setResponse({ status, data: data.errors })
+		}
+		setLoading(false)
 	}
 
 	return (
@@ -61,7 +114,13 @@ const Login = () => {
 				<Card.Body>
 					<Card.Img className="p-5" variant="top" src={images.BANNER_LOGIN} />
 					<Formik initialValues={initValues} onSubmit={onSubmit}>
-						{(formikProps) => <FormLogin formikProps={formikProps} />}
+						{(formikProps) => (
+							<FormLogin
+								loading={loading}
+								response={response}
+								{...formikProps}
+							/>
+						)}
 					</Formik>
 				</Card.Body>
 			</Card>
