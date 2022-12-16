@@ -1,12 +1,13 @@
+import { lazy, Suspense } from 'react'
 import { Provider } from 'react-redux/es/exports'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { lazy, Suspense } from 'react'
 import store from './data'
 import Editor from './pages/Editor'
 import Home from './pages/Home'
+import Loader from './pages/Loader'
 import Login from './pages/Login'
+import Profile from './pages/Profile'
 import Register from './pages/Register'
-import Loading from './pages/Loading'
 
 const LayoutDefault = lazy(() => import('./Layouts'))
 
@@ -14,7 +15,7 @@ const routers = createBrowserRouter([
 	{
 		path: '/',
 		element: (
-			<Suspense fallback={<Loading />}>
+			<Suspense fallback={<Loader />}>
 				<LayoutDefault />
 			</Suspense>
 		),
@@ -26,6 +27,14 @@ const routers = createBrowserRouter([
 			{
 				path: 'editor',
 				element: <Editor />
+			},
+			{
+				path: 'profiles/:name',
+				element: <Profile />
+			},
+			{
+				path: 'profiles/:name/favorited',
+				element: <Profile />
 			}
 		]
 	},

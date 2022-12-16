@@ -1,5 +1,4 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit'
-import { IResponseSuccess } from './../pages/Register/index'
 
 export const User = createSlice({
 	name: 'user',
@@ -12,13 +11,21 @@ export const User = createSlice({
 	}
 })
 
-export interface IStore {
-	user: IResponseSuccess | null
-}
+export const Loading = createSlice({
+	name: 'loading',
+	initialState: false,
+	reducers: {
+		toggleLoading: (state) => {
+			state = !state
+			return state
+		}
+	}
+})
 
 const store = configureStore({
 	reducer: {
-		user: User.reducer
+		user: User.reducer,
+		loading: Loading.reducer
 	}
 })
 

@@ -1,5 +1,7 @@
+import { Container } from 'react-bootstrap'
+
 const Home = () => {
-	return <>Home</>
+	return <Container></Container>
 }
 
 export default Home

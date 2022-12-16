@@ -1,7 +1,7 @@
 import { Container, Image } from 'react-bootstrap'
 import images from '../../assets/images'
 
-const Loading = () => {
+const Loader = () => {
 	return (
 		<Container
 			fluid
@@ -18,4 +18,4 @@ const Loading = () => {
 	)
 }
 
-export default Loading
+export default Loader

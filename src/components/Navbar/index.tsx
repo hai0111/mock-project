@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import { Card, Image } from 'react-bootstrap'
+import { AiFillSetting } from 'react-icons/ai'
 import { IoIosCreate } from 'react-icons/io'
 import { IoCreateOutline } from 'react-icons/io5'
 import { RiHome5Fill, RiHome5Line } from 'react-icons/ri'
@@ -7,9 +8,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation } from 'react-router-dom'
 import myAxios from '../../api/myAxios'
 import images from '../../assets/images'
-import { IStore, User } from '../../data'
-import { AiFillSetting } from 'react-icons/ai'
-import Loading from '../../pages/Loading'
+import { User } from '../../data'
+import IStore from '../../data/IStore'
+import Loader from '../../pages/Loader'
 
 const NAVBAR_ITEMS = [
 	{
@@ -28,7 +29,7 @@ const NAVBAR_ITEMS = [
 
 const Navbar = () => {
 	const { pathname } = useLocation()
-	const user = useSelector((state: IStore) => state.user)
+	const { user } = useSelector((state: IStore) => state)
 	const { setUser } = User.actions
 
 	const dispatch = useDispatch()
@@ -67,27 +68,35 @@ const Navbar = () => {
 						className="px-5 pt-5"
 					/>
 					<Card.Body className="flex-grow-1 d-flex flex-column px-0">
-						<Link
-							to={'/profile'}
-							className="text-dark text-decoration-none d-flex ps-4 py-3 my-5"
-						>
-							<Image src={user.image} width={80} className="rounded-circle" />
-							<div className="py-2 px-3">
-								<div className="fw-bold h5">{user.username}</div>
-								<div>{user.email}</div>
-							</div>
-							<div className="align-self-center p-3">
+						<div className="position-relative">
+							<Link
+								to={`/profiles/${user.username}`}
+								className="text-dark text-decoration-none d-flex ps-4 py-3 my-5"
+							>
+								<Image src={user.image} width={80} className="rounded-circle" />
+								<div className="py-2 px-3">
+									<div className="fw-bold h5">{user.username}</div>
+									<div>{user.email}</div>
+								</div>
+							</Link>
+							<div
+								style={{
+									right: 16
+								}}
+								className="position-absolute top-50 translate-middle-y"
+							>
 								<Link
 									to={'/settings'}
-									style={{ width: 50, height: 50 }}
-									className="border animation-2s text-secondary spinner-border d-inline-flex justify-content-center align-items-center rounded-circle hover"
+									style={{ height: 50, width: 50 }}
+									className="border animation-2s text-secondary spinner-border d-inline-flex rounded-circle hover"
 								>
-									<AiFillSetting size={'2rem'} />
+									<AiFillSetting size={'2rem'} className="m-auto" />
 								</Link>
 							</div>
-						</Link>
+						</div>
 						{NAVBAR_ITEMS.map((item) => {
-							const Icon = pathname === item.path ? item.activeIcon : item.icon
+							const check = pathname === item.path
+							const Icon = check ? item.activeIcon : item.icon
 							return (
 								<Link
 									to={item.path}
@@ -103,7 +112,7 @@ const Navbar = () => {
 					<Card.Footer></Card.Footer>
 				</Card>
 			) : (
-				<Loading />
+				<Loader />
 			)}
 		</>
 	)
