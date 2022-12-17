@@ -8,6 +8,7 @@ import Loader from './pages/Loader'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
 import Register from './pages/Register'
+import Setting from './pages/Setting'
 
 const LayoutDefault = lazy(() => import('./Layouts'))
 
@@ -27,6 +28,10 @@ const routers = createBrowserRouter([
 			{
 				path: 'editor',
 				element: <Editor />
+			},
+			{
+				path: 'settings',
+				element: <Setting />
 			},
 			{
 				path: 'profiles/:name',

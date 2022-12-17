@@ -14,7 +14,7 @@ interface IResponseErrors {
 }
 
 export interface IResponseSuccess extends IRegister {
-	bio: null
+	bio: null | string
 	token: string
 	image: string
 }
@@ -141,7 +141,9 @@ const Register = () => {
 
 	const validation = Yup.object().shape({
 		username: Yup.string().required('Please enter username'),
-		email: Yup.string().required('Please enter email').email('Email invalid'),
+		email: Yup.string()
+			.required('Please enter email')
+			.email('Email is invalid'),
 		password: Yup.string()
 			.required('Please enter password')
 			.min(6, 'Password contains at least 6 characters')

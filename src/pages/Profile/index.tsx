@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Button, Col, Container, Image, Row } from 'react-bootstrap'
+import { Button, Card, Col, Container, Image, Row } from 'react-bootstrap'
 import { AiOutlineCheck, AiOutlinePlus } from 'react-icons/ai'
 import { BsGrid3X3 } from 'react-icons/bs'
-import { RiHeartFill } from 'react-icons/ri'
+import { RiHeartFill, RiHeartLine } from 'react-icons/ri'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import myAxios from '../../api/myAxios'
 import LoadingEffect from '../../components/LoaderEffect'
+import PaginationCustom, { IPageInfo } from '../../components/Pagination'
+import { formatTime } from '../../hooks/useDateTime'
 import Loader from '../Loader'
+import styles from './styles.module.scss'
 
 interface IProps {
 	data: IProfile
@@ -34,17 +37,29 @@ interface IPost {
 
 const ProfileContainer = ({ data, currentUser }: IProps) => {
 	const [postList, setPostList] = useState<IPost[]>([])
+	const [pageInfo, setPageInfo] = useState<IPageInfo>({
+		page: 1,
+		size: 9,
+		total: 1
+	})
+
 	const [loading, setLoading] = useState<boolean>(true)
 	const checkTab = useLocation().pathname.includes('favorited')
+
 	const getArticles = async () => {
 		setLoading(true)
 		try {
-			const res = await myAxios.get('articles', {
+			const { status, data } = await myAxios.get('articles', {
 				params: {
-					author: currentUser
+					author: currentUser,
+					limit: pageInfo.size,
+					offset: (pageInfo.page - 1) * pageInfo.size
 				}
 			})
-			console.log(res)
+			if (status === 200) {
+				setPostList(data.articles)
+				setPageInfo({ ...pageInfo, total: data.articlesCount })
+			}
 		} catch (err) {
 			console.log(err)
 		}
@@ -54,30 +69,38 @@ const ProfileContainer = ({ data, currentUser }: IProps) => {
 	const getFavorieds = async () => {
 		setLoading(true)
 		try {
-			const res = await myAxios.get('articles', {
+			const { status, data } = await myAxios.get('articles', {
 				params: {
-					favorited: currentUser
+					favorited: currentUser,
+					limit: pageInfo.size,
+					offset: (pageInfo.page - 1) * pageInfo.size
 				}
 			})
-			console.log(res)
+			if (status === 200) {
+				setPostList(data.articles)
+				setPageInfo({ ...pageInfo, total: data.articlesCount })
+			}
 		} catch (err) {
 			console.log(err)
 		}
 		setLoading(false)
 	}
+
+	const getData = () => {
+		checkTab ? getFavorieds() : getArticles()
+	}
+
 	useEffect(() => {
-		if (checkTab) {
-			getFavorieds()
-		} else {
-			getArticles()
-		}
-	}, [checkTab, setPostList])
+		getData()
+		// eslint-disable-next-line
+	}, [currentUser, checkTab, pageInfo.page])
+	data.following = true
 	return (
 		<Container>
 			<Row className="align-items-center justify-content-center border-bottom my-0 py-5">
 				<Col
-					sm={3}
-					className="d-flex align-items-center justify-content-center"
+					xs="auto"
+					className="d-flex align-items-center justify-content-center px-5"
 				>
 					<Image
 						src={data.image}
@@ -86,26 +109,25 @@ const ProfileContainer = ({ data, currentUser }: IProps) => {
 						height={100}
 					/>
 				</Col>
-				<Col md={5}>
-					<div className="d-flex align-items-center">
-						<div className="fw-normal mb-0 h5 d-inline-block me-2">
-							{data.username}
-						</div>
-						<Button variant="outline-secondary" className="ms-3">
-							{data.following ? (
-								<span className="d-inline-flex align-items-center fw-normal mb-0">
-									<AiOutlineCheck className="me-2" />
-									Following
-								</span>
-							) : (
-								<span className="d-inline-flex align-items-center fw-normal mb-0">
-									<AiOutlinePlus className="me-2" />
-									Follow
-								</span>
-							)}
-						</Button>
-					</div>
-					<div className="mt-3">{data.bio}</div>
+				<Col xs="auto" style={{ maxWidth: 500 }} className="">
+					<div className="fw-semibold mb-0 h4 mb-2">{data.username}</div>
+					{data.bio ? <div className="mb-4">{data.bio}</div> : null}
+					<Button
+						className="px-4"
+						variant={data.following ? 'outline-success' : 'outline-secondary'}
+					>
+						{data.following ? (
+							<span className="d-inline-flex align-items-center fw-normal mb-0">
+								<AiOutlineCheck className="me-2" />
+								Following
+							</span>
+						) : (
+							<span className="d-inline-flex align-items-center fw-normal mb-0">
+								<AiOutlinePlus className="me-2" />
+								Follow
+							</span>
+						)}
+					</Button>
 				</Col>
 			</Row>
 			<Row className="justify-content-center">
@@ -138,18 +160,73 @@ const ProfileContainer = ({ data, currentUser }: IProps) => {
 					</Link>
 				</Col>
 			</Row>
-			<Row>
+			<Row
+				className="mt-3 align-content-start g-4 overflow-auto"
+				style={{ height: '70vh' }}
+			>
 				{loading ? (
-					<Col>
+					<Col className="h-50">
 						<LoadingEffect />
 					</Col>
+				) : postList.length ? (
+					postList.map((item, index) => {
+						const Icon = item.favorited ? RiHeartFill : RiHeartLine
+						const tags = item.tagList.map((item) => (
+							<Button
+								size="sm"
+								variant="secondary"
+								disabled
+								className="ms-2 rounded-pill"
+								key={item}
+							>
+								{item}
+							</Button>
+						))
+						return (
+							<Col key={index} md={4}>
+								<Card className="h-100">
+									<Card.Title className="p-3 d-flex justify-content-between">
+										<div className="pe-4">
+											<Link
+												to={`articles/${item.slug}`}
+												className="limit-2 text-black text-decoration-none"
+											>
+												{item.title}
+											</Link>
+											<div className="mt-3 h6 fw-light">
+												{formatTime(item.createdAt)}
+											</div>
+										</div>
+										<div>
+											<Button
+												className={'rounded-circle ' + styles.like}
+												variant="outline-secondary"
+											>
+												<Icon
+													size={'1.5rem'}
+													color={item.favorited ? 'red' : ''}
+												/>
+											</Button>
+										</div>
+									</Card.Title>
+									<Card.Body style={{ height: 100 }}>
+										<div className="limit-3">{item.description}</div>
+									</Card.Body>
+									<Card.Footer className="d-flex justify-content-end py-3">
+										{tags.length ? tags : '# No tag'}
+									</Card.Footer>
+								</Card>
+							</Col>
+						)
+					})
 				) : (
-					postList.map((item, index) => (
-						<Col key={index} md={4}>
-							{item.title}
-						</Col>
-					))
+					<Col className="text-center mt-5 pt-5">Không có dữ liệu</Col>
 				)}
+			</Row>
+			<Row>
+				<Col className="d-flex justify-content-center pt-3">
+					<PaginationCustom setPageInfo={setPageInfo} pageInfo={pageInfo} />
+				</Col>
 			</Row>
 		</Container>
 	)

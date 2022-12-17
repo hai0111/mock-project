@@ -18,14 +18,37 @@ code {
 		monospace;
 }
 
+img {
+	object-fit: cover;
+	display: inline-block;
+}
+
 .hover {
 	transition: 0.2s ease;
 }
 
 .animation-2s {
-	animation-duration: 2s;
+	animation-duration: 3s;
 }
 
 .hover:hover {
 	filter: brightness(0.6);
+}
+
+.limit-2 {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.limit-3 {
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.pointer {
+	cursor: pointer;
 }

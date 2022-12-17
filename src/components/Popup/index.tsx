@@ -12,12 +12,7 @@ interface IProps {
 
 const Popup = ({ color = 'primary', ...props }: IProps) => {
 	return (
-		<Modal
-			show={props.show}
-			onHide={props.toggle}
-			backdrop="static"
-			keyboard={false}
-		>
+		<Modal show={props.show} onHide={props.toggle} backdrop="static">
 			<Modal.Header closeButton>
 				<Modal.Title>{props.title}</Modal.Title>
 			</Modal.Header>
@@ -27,8 +22,10 @@ const Popup = ({ color = 'primary', ...props }: IProps) => {
 					<Button variant={color}>Ok</Button>
 				) : (
 					<>
-						<Button>Đóng</Button>
-						<Button variant={color}>Đồng ý</Button>
+						<Button onClick={props.toggle}>Đóng</Button>
+						<Button variant={color} onClick={props.success}>
+							Đồng ý
+						</Button>
 					</>
 				)}
 			</Modal.Footer>

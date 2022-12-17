@@ -108,6 +108,10 @@ const Login = () => {
 		setLoading(false)
 	}
 
+	useEffect(() => {
+		sessionStorage.clear()
+	}, [])
+
 	return (
 		<Container className="d-flex flex-column min-vh-100 justify-content-center align-items-center">
 			<Card style={{ width: 500 }} className="rounded-5 mw-100">

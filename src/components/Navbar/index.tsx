@@ -1,16 +1,18 @@
-import { useCallback, useEffect } from 'react'
-import { Card, Image } from 'react-bootstrap'
+import { useCallback, useEffect, useState } from 'react'
+import { Button, Card, Image } from 'react-bootstrap'
 import { AiFillSetting } from 'react-icons/ai'
 import { IoIosCreate } from 'react-icons/io'
 import { IoCreateOutline } from 'react-icons/io5'
-import { RiHome5Fill, RiHome5Line } from 'react-icons/ri'
+import { RiHome5Fill, RiHome5Line, RiLogoutBoxLine } from 'react-icons/ri'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import myAxios from '../../api/myAxios'
 import images from '../../assets/images'
 import { User } from '../../data'
 import IStore from '../../data/IStore'
 import Loader from '../../pages/Loader'
+import Popup from '../Popup'
 
 const NAVBAR_ITEMS = [
 	{
@@ -28,18 +30,34 @@ const NAVBAR_ITEMS = [
 ]
 
 const Navbar = () => {
+	const [popup, setPopup] = useState<boolean>(false)
 	const { pathname } = useLocation()
 	const { user } = useSelector((state: IStore) => state)
 	const { setUser } = User.actions
 
 	const dispatch = useDispatch()
 
+	const togglePopup = () => {
+		setPopup(!popup)
+	}
+
+	const navigate = useNavigate()
+
+	const logout = () => {
+		navigate('/login')
+		toast('Logout successful', {
+			className: 'bg-danger text-light',
+			position: 'top-right',
+			hideProgressBar: false
+		})
+	}
+
 	const getDataUser = useCallback(async () => {
 		try {
 			const { data } = await myAxios.get('user')
 			dispatch(setUser(data.user))
 		} catch (err) {
-			console.log(err)
+			navigate('/login')
 		}
 	}, [setUser, dispatch])
 
@@ -73,7 +91,13 @@ const Navbar = () => {
 								to={`/profiles/${user.username}`}
 								className="text-dark text-decoration-none d-flex ps-4 py-3 my-5"
 							>
-								<Image src={user.image} width={80} className="rounded-circle" />
+								<Image
+									src={user.image}
+									width={80}
+									height={80}
+									style={{ objectFit: 'cover' }}
+									className="rounded-circle"
+								/>
 								<div className="py-2 px-3">
 									<div className="fw-bold h5">{user.username}</div>
 									<div>{user.email}</div>
@@ -109,7 +133,6 @@ const Navbar = () => {
 							)
 						})}
 					</Card.Body>
-					<Card.Footer></Card.Footer>
 				</Card>
 			) : (
 				<Loader />
