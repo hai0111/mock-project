@@ -1,8 +1,12 @@
 import axios from 'axios'
 
 const getToken = () => {
-	const bearer = `Bearer ${sessionStorage.getItem('token')}`
-	return bearer
+	const token = sessionStorage.getItem('token')
+	if (token) {
+		const bearer = `Bearer ${token}`
+		return bearer
+	}
+	return null
 }
 
 const myAxios = axios.create({

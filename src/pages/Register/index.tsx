@@ -124,6 +124,10 @@ const Register = () => {
 		password: '',
 		username: ''
 	}
+
+	useEffect(() => {
+		document.title = 'Register'
+	}, [])
 	const onSubmit = async (values: IRegister) => {
 		setLoading(true)
 		try {

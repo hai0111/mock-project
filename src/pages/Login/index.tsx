@@ -110,6 +110,7 @@ const Login = () => {
 
 	useEffect(() => {
 		sessionStorage.clear()
+		document.title = 'Login'
 	}, [])
 
 	return (

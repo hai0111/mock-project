@@ -1,0 +1,12 @@
+.image {
+	.btn_choose {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		opacity: 0;
+		transition: 0.2s ease;
+	}
+	&:hover .btn_choose {
+		opacity: 1;
+	}
+}

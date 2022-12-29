@@ -1,30 +1,27 @@
+import { AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import { Button, Card, Col, Container, Image, Row } from 'react-bootstrap'
-import { AiOutlineCheck, AiOutlinePlus } from 'react-icons/ai'
+import { AiFillSetting, AiOutlineCheck, AiOutlinePlus } from 'react-icons/ai'
 import { BsGrid3X3 } from 'react-icons/bs'
 import { RiHeartFill, RiHeartLine } from 'react-icons/ri'
+import { useSelector } from 'react-redux'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import myAxios from '../../api/myAxios'
 import LoadingEffect from '../../components/LoaderEffect'
 import PaginationCustom, { IPageInfo } from '../../components/Pagination'
+import IStore from '../../data/IStore'
+import { toastError } from '../../hooks/toast'
 import { formatTime } from '../../hooks/useDateTime'
 import Loader from '../Loader'
-import styles from './styles.module.scss'
 
 interface IProps {
 	data: IProfile
 	currentUser: string | undefined
+	setData(data: IProfile): void
 }
 
-interface IAuthor {
-	bio: null
-	following: false
-	image: string
-	username: string
-}
-
-interface IPost {
-	author: IAuthor
+export interface IPost {
+	author: IProfile
 	body: string
 	createdAt: string
 	description: string
@@ -35,7 +32,34 @@ interface IPost {
 	title: string
 }
 
-const ProfileContainer = ({ data, currentUser }: IProps) => {
+interface IButtonFollowProps {
+	following: boolean
+	click(): void
+}
+
+export const ButtonFollowing = (props: IButtonFollowProps) => {
+	return (
+		<Button
+			className="px-4"
+			variant={props.following ? 'outline-success' : 'outline-secondary'}
+			onClick={props.click}
+		>
+			{props.following ? (
+				<span className="d-inline-flex align-items-center fw-normal mb-0">
+					<AiOutlineCheck className="me-2" />
+					Following
+				</span>
+			) : (
+				<span className="d-inline-flex align-items-center fw-normal mb-0">
+					<AiOutlinePlus className="me-2" />
+					Follow
+				</span>
+			)}
+		</Button>
+	)
+}
+
+const ProfileContainer = ({ data, currentUser, setData }: IProps) => {
 	const [postList, setPostList] = useState<IPost[]>([])
 	const [pageInfo, setPageInfo] = useState<IPageInfo>({
 		page: 1,
@@ -94,10 +118,42 @@ const ProfileContainer = ({ data, currentUser }: IProps) => {
 		getData()
 		// eslint-disable-next-line
 	}, [currentUser, checkTab, pageInfo.page])
-	data.following = true
+
+	const user = useSelector((store: IStore) => store.user)
+
+	const handleFollow = async () => {
+		const method = data.following ? 'delete' : 'post'
+		try {
+			const res: AxiosResponse<{ profile: IProfile }> = await myAxios[method](
+				`profiles/${currentUser}/follow`
+			)
+			if (res.status === 200) {
+				setData({ ...data, following: res.data.profile.following })
+			}
+		} catch (error) {
+			toastError('An error occurred')
+		}
+	}
+
+	const onFavorite = async (item: IPost) => {
+		const index = postList.indexOf(item)
+		const method = item.favorited ? 'delete' : 'post'
+		try {
+			const { status, data } = await myAxios[method](
+				`/articles/${item.slug}/favorite`
+			)
+			if (status === 200) {
+				postList[index] = data.article
+				setPostList([...postList])
+			}
+		} catch (err) {
+			toastError('An error occurred')
+		}
+	}
+
 	return (
 		<Container>
-			<Row className="align-items-center justify-content-center border-bottom my-0 py-5">
+			<Row className="align-items-center justify-content-center border-bottom my-0 pb-3 pt-5">
 				<Col
 					xs="auto"
 					className="d-flex align-items-center justify-content-center px-5"
@@ -111,23 +167,22 @@ const ProfileContainer = ({ data, currentUser }: IProps) => {
 				</Col>
 				<Col xs="auto" style={{ maxWidth: 500 }} className="">
 					<div className="fw-semibold mb-0 h4 mb-2">{data.username}</div>
-					{data.bio ? <div className="mb-4">{data.bio}</div> : null}
-					<Button
-						className="px-4"
-						variant={data.following ? 'outline-success' : 'outline-secondary'}
-					>
-						{data.following ? (
-							<span className="d-inline-flex align-items-center fw-normal mb-0">
-								<AiOutlineCheck className="me-2" />
-								Following
-							</span>
-						) : (
-							<span className="d-inline-flex align-items-center fw-normal mb-0">
-								<AiOutlinePlus className="me-2" />
-								Follow
-							</span>
-						)}
-					</Button>
+					{data.bio ? <div>{data.bio}</div> : null}
+					{user?.username === currentUser ? (
+						<Link
+							to={'/settings'}
+							className="btn px-4 mt-4 btn-outline-secondary d-inline-flex align-items-center"
+						>
+							<AiFillSetting className="me-2" /> Settings
+						</Link>
+					) : (
+						<div className="mt-3">
+							<ButtonFollowing
+								following={data.following}
+								click={handleFollow}
+							/>
+						</div>
+					)}
 				</Col>
 			</Row>
 			<Row className="justify-content-center">
@@ -197,16 +252,18 @@ const ProfileContainer = ({ data, currentUser }: IProps) => {
 												{formatTime(item.createdAt)}
 											</div>
 										</div>
-										<div>
-											<Button
-												className={'rounded-circle ' + styles.like}
-												variant="outline-secondary"
-											>
-												<Icon
-													size={'1.5rem'}
-													color={item.favorited ? 'red' : ''}
-												/>
-											</Button>
+										<div className="d-flex flex-column align-items-center">
+											<Icon
+												size={'1.2rem'}
+												color={item.favorited ? 'red' : ''}
+												className="pointer"
+												onClick={() => {
+													onFavorite(item)
+												}}
+											/>
+											<span className="fz-15 d-inline-block mt-1">
+												{item.favoritesCount}
+											</span>
 										</div>
 									</Card.Title>
 									<Card.Body style={{ height: 100 }}>
@@ -220,7 +277,7 @@ const ProfileContainer = ({ data, currentUser }: IProps) => {
 						)
 					})
 				) : (
-					<Col className="text-center mt-5 pt-5">Không có dữ liệu</Col>
+					<Col className="text-center mt-5 pt-5">There are no posts yet</Col>
 				)}
 			</Row>
 			<Row>
@@ -232,8 +289,8 @@ const ProfileContainer = ({ data, currentUser }: IProps) => {
 	)
 }
 
-interface IProfile {
-	bio: string
+export interface IProfile {
+	bio: string | null
 	following: boolean
 	image: string
 	username: string
@@ -244,9 +301,11 @@ const Profile = () => {
 	const [data, setData] = useState<IProfile | null>(null)
 
 	useEffect(() => {
+		document.title = name as string
 		const getProfile = async () => {
 			try {
-				const { data } = await myAxios.get(`profiles/${name}`)
+				const { data }: AxiosResponse<{ profile: IProfile }> =
+					await myAxios.get(`profiles/${name}`)
 				setData(data.profile)
 			} catch (err) {
 				console.log(err)
@@ -257,7 +316,11 @@ const Profile = () => {
 
 	return (
 		<>
-			{data ? <ProfileContainer currentUser={name} data={data} /> : <Loader />}
+			{data ? (
+				<ProfileContainer setData={setData} currentUser={name} data={data} />
+			) : (
+				<Loader />
+			)}
 		</>
 	)
 }

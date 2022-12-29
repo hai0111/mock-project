@@ -1,4 +1,5 @@
 import { Formik, FormikProps } from 'formik'
+import React, { useEffect, useState, useRef } from 'react'
 import {
 	Button,
 	Col,
@@ -8,14 +9,17 @@ import {
 	Image,
 	Row
 } from 'react-bootstrap'
+import { AiFillInstagram } from 'react-icons/ai'
 import { useDispatch, useSelector } from 'react-redux'
-import IStore from '../../data/IStore'
-import { IResponseSuccess } from '../Register'
 import * as Yup from 'yup'
-import React, { useEffect, useState } from 'react'
 import myAxios from '../../api/myAxios'
 import LoadingEffect from '../../components/LoaderEffect'
 import { User } from '../../data'
+import IStore from '../../data/IStore'
+import { getBase64 } from '../../hooks/handleFile'
+import { toastError, toastSuccess } from '../../hooks/toast'
+import { IResponseSuccess } from '../Register'
+import styles from './styles.module.scss'
 
 interface IProps extends FormikProps<IResponseSuccess> {
 	errors: any
@@ -30,7 +34,8 @@ const SettingForm = ({
 	handleSubmit,
 	errors,
 	image,
-	touched
+	touched,
+	setFieldValue
 }: IProps) => {
 	const [imgSrc, setImgSrc] = useState<string>(image)
 	const [errorImg, setErrorImg] = useState<string | null>(null)
@@ -58,15 +63,54 @@ const SettingForm = ({
 		}
 	}
 
+	const inputFile = useRef<null | HTMLInputElement>(null)
+
+	const changeFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files)
+			getBase64(
+				e.target.files,
+				(base64) => {
+					setFieldValue('image', base64)
+				},
+				(err) => {
+					console.log(err)
+				}
+			)
+	}
+
 	return (
 		<Form onSubmit={submit}>
 			<Form.Group className="d-flex justify-content-center mb-5">
-				<Image
-					src={imgSrc}
-					width={180}
-					height={180}
-					className="rounded-circle"
-				/>
+				<div
+					style={{
+						width: 180,
+						height: 180
+					}}
+					className={
+						styles.image +
+						' rounded-circle overflow-hidden position-relative pointer'
+					}
+				>
+					<Image src={imgSrc} width="100%" height="100%" />
+					<div
+						className={
+							styles.btn_choose +
+							' position-absolute bottom-0 start-0 end-0 top-0 bg-white bg-opacity-75'
+						}
+						onClick={() => {
+							inputFile.current?.click()
+						}}
+					>
+						<AiFillInstagram size={'3rem'} color="#a3f" />
+						<input
+							ref={inputFile}
+							type="file"
+							hidden
+							accept="image/*"
+							onChange={changeFile}
+						/>
+					</div>
+				</div>
 			</Form.Group>
 			<Form.Group className="mt-3">
 				<Form.Label className="fw-semibold text-black h5">
@@ -181,9 +225,10 @@ const Setting = () => {
 			)
 			if (status === 200) {
 				dispatch(setUser(data.user))
+				toastSuccess('Update successfully!')
 			}
-		} catch (err) {
-			console.log(err)
+		} catch (err: any) {
+			toastError(err.response.data)
 		}
 		setLoading(false)
 	}

@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Provider } from 'react-redux/es/exports'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import store from './data'
+import ArticleDetail from './pages/Detail'
 import Editor from './pages/Editor'
 import Home from './pages/Home'
 import Loader from './pages/Loader'
@@ -40,6 +41,10 @@ const routers = createBrowserRouter([
 			{
 				path: 'profiles/:name/favorited',
 				element: <Profile />
+			},
+			{
+				path: 'article/:name',
+				element: <ArticleDetail />
 			}
 		]
 	},

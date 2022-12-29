@@ -1,10 +1,9 @@
 import { Button, Modal } from 'react-bootstrap'
+import { IModal } from '../Article/Detail'
 
-interface IProps {
-	show: boolean
+interface IProps extends IModal {
 	ok?: true
 	success(): void
-	toggle(): void
 	title: string
 	content: string
 	color: string

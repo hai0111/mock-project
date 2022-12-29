@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { Col, Row } from 'react-bootstrap'
 import { useSelector } from 'react-redux'
 import { Outlet, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
@@ -13,7 +14,7 @@ const LayoutDefault = () => {
 	const navigate = useNavigate()
 	const token = sessionStorage.getItem('token')
 	useEffect(() => {
-		if (!token) navigate('/login')
+		// if (!token) navigate('/login')
 	}, [token, navigate])
 	const loading = useSelector((state: IStore) => state.loading)
 	return (
@@ -21,14 +22,14 @@ const LayoutDefault = () => {
 			{loading ? (
 				<Loader />
 			) : (
-				<div className="min-vh-100 d-flex">
-					<div>
+				<Row className="min-vh-100 d-flex mx-0">
+					<Col xs="auto" className="px-0">
 						<Navbar />
-					</div>
-					<div className="flex-grow-1 bg-light">
+					</Col>
+					<Col className="flex-grow-1 bg-light">
 						<Outlet />
-					</div>
-				</div>
+					</Col>
+				</Row>
 			)}
 		</>
 	)
