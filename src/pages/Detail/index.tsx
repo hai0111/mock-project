@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios'
+import { AxiosError, AxiosResponse } from 'axios'
 import { useEffect, useState } from 'react'
 import {
 	Badge,
@@ -10,7 +10,7 @@ import {
 	Row
 } from 'react-bootstrap'
 import { RiHeartFill, RiHeartLine } from 'react-icons/ri'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import myAxios from '../../api/myAxios'
 import { toastError } from '../../hooks/toast'
 import { formatTime } from '../../hooks/useDateTime'
@@ -84,6 +84,8 @@ const ArticleDetail = () => {
 		}
 	}
 
+	const navigate = useNavigate()
+
 	const postComment = async () => {
 		try {
 			const { status, data: res }: AxiosResponse<{ comment: IComment }> =
@@ -94,7 +96,11 @@ const ArticleDetail = () => {
 				setCmts([res.comment, ...cmts])
 				setCmtInput('')
 			}
-		} catch (err) {}
+		} catch (err: any) {
+			if (err?.response?.status) {
+				navigate('/login')
+			}
+		}
 	}
 
 	useEffect(() => {

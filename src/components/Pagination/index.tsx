@@ -49,7 +49,9 @@ const PaginationCustom = (props: IProps) => {
 					: page < 3
 					? page - 2 + Math.abs(page - 3)
 					: page - 2 + totalPages - page - 2
+
 			const end = start + 4
+
 			for (let i = start; i <= end; i++) {
 				pageList.push(
 					<Pagination.Item
